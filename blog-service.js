@@ -1,5 +1,4 @@
 const Sequelize = require('sequelize');
-//TODO: change the database name, user, password, and host to your own
 var sequelize = new Sequelize('tyqkirxi', 'tyqkirxi', '4V734Sb3Y5x2WDKFJ_T2KLgWfBLBd3lQ', {
   host: 'ruby.db.elephantsql.com',
   dialect: 'postgres',
