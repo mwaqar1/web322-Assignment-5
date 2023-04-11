@@ -21,7 +21,7 @@
             <td><a href="/posts?category={{id}}">{{id}}</a></td>
             <td><a href="/posts?category={{id}}">{{category}}</a></td>
             <td>
-              <form method="POST" action="/categories/delete/{{id}}">
+              <form method="GET" action="/categories/delete/{{id}}">
                 <button type="submit" class="btn btn-danger">remove</button>
               </form>
             </td>

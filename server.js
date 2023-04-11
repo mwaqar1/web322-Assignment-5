@@ -112,50 +112,30 @@ app.get("/about", (req, res) => {
 });
 
 app.get("/blog", async (req, res) => {
-  // Declare an object to store properties for the view
   let viewData = {};
-
   try {
-    // declare empty array to hold "post" objects
     let posts = [];
-
-    // if there's a "category" query, filter the returned posts by category
     if (req.query.category) {
-      // Obtain the published "posts" by category
       posts = await blogData.getPublishedPostsByCategory(req.query.category);
     } else {
-      // Obtain the published "posts"
       posts = await blogData.getPublishedPosts();
     }
-
-    // sort the published posts by postDate
     posts.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
-
-    // get the latest post from the front of the list (element 0)
     let post = posts[0];
-
-    // store the "posts" and "post" data in the viewData object (to be passed to the view)
     viewData.posts = posts;
     viewData.post = post;
   } catch (err) {
     viewData.message = err;
   }
-
   try {
-    // Obtain the full list of "categories"
     let categories = await blogData.getCategories();
-
-    // store the "categories" data in the viewData object (to be passed to the view)
     viewData.categories = categories;
   } catch (err) {
     viewData.categoriesMessage = "no results";
   }
-
-  // render the "blog" view with all of the data (viewData)
   res.render("blog", { data: viewData });
 });
 
-//lala1
 app.get("/posts", ensureLogin, (req, res) => {
   let queryPromise = null;
   if (req.query.category) {
@@ -165,7 +145,6 @@ app.get("/posts", ensureLogin, (req, res) => {
   } else {
     queryPromise = blogData.getAllPosts();
   }
-
   queryPromise
     .then((data) => {
       if (data.length > 0) {
@@ -179,7 +158,6 @@ app.get("/posts", ensureLogin, (req, res) => {
     });
 });
 
-//lala2
 app.post("/posts/add", [upload.single("featureImage"), ensureLogin], (req, res) => {
   if (req.file) {
     let streamUpload = (req) => {
@@ -191,16 +169,13 @@ app.post("/posts/add", [upload.single("featureImage"), ensureLogin], (req, res) 
             reject(error);
           }
         });
-
         streamifier.createReadStream(req.file.buffer).pipe(stream);
       });
     };
-
     async function upload(req) {
       let result = await streamUpload(req);
       return result;
     }
-
     upload(req).then((uploaded) => {
       processPost(uploaded.url);
     });
@@ -210,7 +185,6 @@ app.post("/posts/add", [upload.single("featureImage"), ensureLogin], (req, res) 
 
   function processPost(imageUrl) {
     req.body.featureImage = imageUrl;
-
     blogData
       .addPost(req.body)
       .then((post) => {
@@ -222,12 +196,10 @@ app.post("/posts/add", [upload.single("featureImage"), ensureLogin], (req, res) 
   }
 });
 
-//lala3
 app.get("/categories/add", ensureLogin, (req, res) => {
   res.render("addCategory");
 });
 
-//lala4
 app.post("/categories/add", ensureLogin, (req, res) => {
   blogData
     .addCategory(req.body)
@@ -239,20 +211,6 @@ app.post("/categories/add", ensureLogin, (req, res) => {
     });
 });
 
-//lala6
-app.post("/posts/delete/:id", ensureLogin, (req, res) => {
-  blogData
-    .deletePostById(req.params.id)
-    .then(() => {
-      res.redirect("/posts");
-    })
-    .catch((err) => {
-      console.log("Error deleting post:", err);
-      res.status(500).send("Unable to remove post / Post not found");
-    });
-});
-
-//lala7
 app.get("/posts/add", ensureLogin, (req, res) => {
   blogData
     .getCategories()
@@ -264,7 +222,6 @@ app.get("/posts/add", ensureLogin, (req, res) => {
     });
 });
 
-//lala8
 app.get("/posts/delete/:id", ensureLogin, (req, res) => {
   blogData
     .deletePostById(req.params.id)
@@ -276,7 +233,6 @@ app.get("/posts/delete/:id", ensureLogin, (req, res) => {
     });
 });
 
-//lala9
 app.get("/post/:id", ensureLogin, (req, res) => {
   blogData
     .getPostById(req.params.id)
@@ -289,54 +245,36 @@ app.get("/post/:id", ensureLogin, (req, res) => {
 });
 
 app.get("/blog/:id", async (req, res) => {
-  // Declare an object to store properties for the view
   let viewData = {};
-
   try {
-    // declare empty array to hold "post" objects
     let posts = [];
-
-    // if there's a "category" query, filter the returned posts by category
     if (req.query.category) {
-      // Obtain the published "posts" by category
       posts = await blogData.getPublishedPostsByCategory(req.query.category);
     } else {
-      // Obtain the published "posts"
       posts = await blogData.getPublishedPosts();
     }
-
-    // sort the published posts by postDate
     posts.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
-
-    // store the "posts" and "post" data in the viewData object (to be passed to the view)
     viewData.posts = posts;
   } catch (err) {
     viewData.message = "no results";
   }
-
   try {
-    // Obtain the post by "id"
     viewData.post = await blogData.getPostById(req.params.id);
   } catch (err) {
     viewData.message = "no results";
   }
 
   try {
-    // Obtain the full list of "categories"
     let categories = await blogData.getCategories();
-
-    // store the "categories" data in the viewData object (to be passed to the view)
     viewData.categories = categories;
   } catch (err) {
     viewData.categoriesMessage = "no results";
   }
 
-  // render the "blog" view with all of the data (viewData)
   res.render("blog", { data: viewData });
 });
 
-//lala10
-app.get("/categories", (req, res) => {
+app.get("/categories", ensureLogin, (req, res) => {
   blogData
     .getCategories()
     .then((data) => {
@@ -360,26 +298,19 @@ app.get('/register', function(req, res) {
 });
 
 app.post('/register', function(req, res) {
-  // Invoke the RegisterUser method with the POST data
   authData.RegisterUser(req.body)
     .then(function() {
-      // If the promise resolved successfully, render the register view with a success message
       res.render('register', { successMessage: 'User created' });
     })
     .catch(function(err) {
-      // If the promise was rejected, render the register view with an error message and the user's username
       res.render('register', { errorMessage: err, userName: req.body.userName });
     });
 });
 
 app.post('/login', function(req, res) {
-  // Set the value of the client's "User-Agent" to the request body
   req.body.userAgent = req.get('User-Agent');
-
-  // Invoke the CheckUser method with the POST data
   authData.CheckUser(req.body)
     .then(function(user) {
-      // If the promise resolved successfully, add the user's information to the session and redirect to /posts
       req.session.user = {
         userName: user.userName,
         email: user.email,
@@ -388,21 +319,26 @@ app.post('/login', function(req, res) {
       res.redirect('/posts');
     })
     .catch(function(err) {
-      // If the promise was rejected, render the login view with an error message and the user's username
       res.render('login', { errorMessage: err, userName: req.body.userName });
     });
 });
 
-// GET /logout route
+app.get("/categories/delete/:id", ensureLogin, (req, res) => {
+  blogData.deleteCategoryById(req.params.id)
+    .then(() => {
+      res.redirect('/categories');
+    }).catch((err) => {
+      res.status(500).send("Unable to Remove Category / Category Not Found");
+    });
+});
+
+
 app.get('/logout', function(req, res) {
-  // Reset the session and redirect to "/"
   req.session.reset();
   res.redirect('/');
 });
 
-// GET /userHistory route (protected by ensureLogin middleware)
 app.get('/userHistory', ensureLogin, function(req, res) {
-  // Render the userHistory view without any data
   res.render('userHistory');
 });
 
